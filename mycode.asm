@@ -14,7 +14,10 @@ data segment
     qnt db ?
     money db ? 
     hello db "Thankyou for shopping$"
-    choice db ?
+    choice db ?  
+    mynumber1 db ?
+    mynumber2 db ?
+    
 ends
 macro newline  
     ;newline character
@@ -33,19 +36,32 @@ macro printmsg p1
          int 21h
          newline
 endm 
-macro input2 p2
-    mov     ah, 1
-int     21h           
-mov     cl, 0Ah
-sub     al, 30h
-mul     cl
-mov     bl, al
-mov     ah, 1
-int     21h     
-sub     al, 30h
-add     bl, al
-mov p2, bl
-  newline
+macro input2 
+print "Enter Denomination"
+mov ah, 01h
+int 21h
+sub al,30h
+mov bl, 0Ah
+mul bl
+mov mynumber1,al
+mov ah, 01h     ;0011 1100
+int 21h
+sub al, 30h
+add mynumber1,al
+
+  newline 
+  print "ENter notes and coins"
+  mov ah, 01h
+  int 21h
+  sub al,30h
+  mov bl,0Ah
+  mul bl
+  mov mynumber2, al
+  mov ah, 01h
+  int 21h
+  sub al, 30h
+  add mynumber2, al
+  
 endm
 macro input p2
     mov ah, 1
@@ -55,36 +71,12 @@ macro input p2
     newline
 endm
 
-macro amount
-    cmp choice, 31h
-    je teaa
-    cmp choice, 32h
-    je coffeea
-    cmp choice, 33h
-    je milka
-   
-   teaa:
-   mov al, qnt
-   mov cl, 20
-   mul cl
-   print "You have to pay: "
-   jmp enda
-   
-   coffeea: 
-   mov al, qnt
-   mov cl, 60
-   mul cl 
-   jmp enda
-   
-   milka:
-   mov al, qnt
-   mov cl, 30
-   mul cl
-   jmp enda
-   
-   enda:
-   hlt 
-  endm
+macro multiply
+    mov al, mynumber1
+    mov bl, mynumber2
+    mul bl
+    
+    endm
 
 code segment
 start:
@@ -108,18 +100,9 @@ start:
 ;taking input choice    
   input choice
   
-;ask for quantity
-  printmsg askqnt
+ 
   
-;taking input quantity    
-  input qnt 
-  
-;ask to insert money
-  printmsg askmoney
-  
-;taking input money   
-  input2 money
-                                           
+                            
   cmp choice, 31h
   je tea
   
@@ -148,14 +131,56 @@ start:
   newline
   jmp end1
             
-            
+ 
+                
   
   
   
   
  end1:
- amount 
- printmsg hello   
+ ;ask for quantity
+  printmsg askqnt
+  
+;taking input quantity    
+  input qnt
+  
+  cmp choice, 31h
+  je teaqt
+  cmp choice, 32h
+  je coffeeqt
+  cmp choice, 33h
+  je milkqt
+  
+  teaqt:
+  mov al,dl
+  sub al, 30h
+  mov bl, 20
+  mul bl
+  jmp part3 
+  
+  coffeeqt:
+  mov al,dl
+  sub al, 30h
+  mov bl, 60
+  mul bl
+  jmp part3
+  
+  milkqt:
+  mov al,dl
+  sub al, 30h
+  mov bl, 30
+  mul bl
+  jmp part3
+  
+  part3:
+  newline
+  ;ask to insert money
+  printmsg askmoney
+    newline
+  ;taking input money   
+  input2 
+  multiply
+   
  ;   mov ax, 4c00h ; exit to operating system.
    ; int 21h    
 ends
